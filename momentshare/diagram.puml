@@ -1,0 +1,385 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class Model {
+    - static final String TAG
+    - static Model model
+    - User currentUser
+    - ArrayList<Event> events
+    - FirebaseAuth mAuth
+    - FirebaseFirestore db
+    - FirebaseStorage fbStorage
+    - CollectionReference eventsRef
+    - ArrayList<IModelUpdate> modelUpdates
+
+    + static Model getInstance(): Model
+    + registerModelUpdate(modelUpdate: IModelUpdate): void
+    + signIn(email: String, password: String): void
+    + signUp(email: String, username: String, password: String): void
+    + signOut(): void
+    + loadData(): void
+    + joinEvent(eventCode: String): void
+    + createEvent(event: Event, bitmap: Bitmap): void
+    + addPostToEvent(eventId: String, mediaPost: MediaPost): void
+    + deleteMediaPost(eventId: String, postId: String): void
+    + loadMediaPostsForEvent(event: Event): void
+    + loadHost(userId: String): void
+    + setUsername(username: String): void
+    + uploadBitmap(bitmap: Bitmap): void
+    + setUserProfileImage(profileImageBitmap: Bitmap): void
+    + getCurrentUser(): User
+    + IsUserLoggedIn(): boolean
+    + getEvents(): ArrayList<Event>
+    + getEvent(id: String): Event
+}
+
+interface IModelUpdate {
+    + eventDataChanged(ex: Exception): void
+    + userRegistrationCompleted(ex: Exception): void
+    + userLoginCompleted(ex: Exception): void
+    + userDataLoaded(ex: Exception): void
+    + eventDataLoaded(ex: Exception): void
+    + raiseMediaUploadComplete(ex: Exception, url: String): void
+    + mediaPostChanged(ex: Exception, event: Event): void
+    + hostDataLoaded(ex: Exception, user: User): void
+    + joinEventResult(ex: Exception): void
+}
+class Event{
+    - String id
+    - ArrayList<MediaPost> mediaPosts
+    - String title
+    - String description
+    - String location
+    - String eventImageUrl
+    - String hostId
+    - Date dateScheduled;
+    - Date dateCreated;
+    - ArrayList<String> participantIds
+
+    + void addParticipant()
+    + void isUserHost(String)
+}
+class MediaPost {
+    - String id
+    - User uploader
+    - String description
+    - Date uploadTime
+    - ArrayList<String> mediaUrls
+}
+
+class User {
+    - String id
+    - String email
+    - String username
+    - String profileImageUrl
+}
+
+class MainActivity {
+  - model: Model
+  - loginDialog: Dialog
+  - bottomNavigationView: BottomNavigationView
+
+  + onCreate(Bundle): void
+  - loadFragment(Fragment): boolean
+  - showLoginDialog(): void
+  + userRegistrationCompleted(Exception): void
+  + userLoginCompleted(Exception): void
+  + userDataLoaded(Exception): void
+  + eventDataChanged(Exception): void
+  + eventDataLoaded(Exception): void
+  + raiseMediaUploadComplete(Exception, String): void
+  + mediaPostChanged(Exception, Event): void
+  + hostDataLoaded(Exception, User): void
+  + joinEventResult(Exception): void
+}
+
+
+class ProfileFragment {
+        - Model model
+        - Context context
+        - ImageView ivProfilePic
+        - ImageView ivEditUsername
+        - ImageView ivEditPhoneNumber
+        - EditText etUsername
+        - EditText etEmail
+        - Button btnSignOut
+        - BottomSheetDialog bsProfilePicDialog
+        - String usernameAtStart
+        - int CAMERA_REQUEST_CODE
+        - int GALLERY_REQUEST_CODE
+        - ActivityResultLauncher<String> cameraPermissionLauncher
+        - ActivityResultLauncher<Void> cameraLauncher
+        - ActivityResultLauncher<String> readGalleryImagesPermissionLauncher
+        - ActivityResultLauncher<String> readGalleryImageLauncher
+        - static final String ARG_PARAM1
+        - static final String ARG_PARAM2
+        - String mParam1
+        - String mParam2
+
+        + ProfileFragment()
+        + static ProfileFragment newInstance(String param1, String param2)
+        + void onCreate(Bundle savedInstanceState)
+        + View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+        + void onViewCreated(View view, Bundle savedInstanceState)
+        + void onStart()
+        + void onPause()
+        - void setUpLayoutViewValues()
+        - boolean isCameraPermissionGranted()
+        - boolean isReadMediaImagePermissionGranted()
+        - void openCamera()
+        - void openGallery()
+
+        + void eventDataChanged(Exception ex)
+        + void userRegistrationCompleted(Exception ex)
+        + void userLoginCompleted(Exception ex)
+        + void userDataLoaded(Exception ex)
+        + void eventDataLoaded(Exception e)
+        + void raiseMediaUploadComplete(Exception e, String url)
+        + void mediaPostChanged(Exception ex, Event event)
+        + void hostDataLoaded(Exception e, User user)
+        + void joinEventResult(Exception e)
+    }
+
+class JoinEventFragment {
+        - Model model
+        - Button btnQR
+        - TextInputLayout tilEventCode
+        - EditText etEventCode
+        - ActivityResultLauncher<Intent> qrScanLauncher
+        - static final String ARG_PARAM1
+        - static final String ARG_PARAM2
+        - String mParam1
+        - String mParam2
+
+        + JoinEventFragment()
+        + static JoinEventFragment newInstance(String param1, String param2)
+        + void onCreate(Bundle savedInstanceState)
+        + View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+        + void onViewCreated(View view, Bundle savedInstanceState)
+        - String getClipboardData()
+
+        + void eventDataChanged(Exception ex)
+        + void userRegistrationCompleted(Exception ex)
+        + void userLoginCompleted(Exception ex)
+        + void userDataLoaded(Exception ex)
+        + void eventDataLoaded(Exception ex)
+        + void raiseMediaUploadComplete(Exception ex, String url)
+        + void mediaPostChanged(Exception ex, Event event)
+        + void hostDataLoaded(Exception ex, User user)
+        + void joinEventResult(Exception ex)
+    }
+
+class EventDisplayActivity {
+        - Model model
+        - Event event
+        - String id
+
+        - TextView tvTime
+        - TextView tvPermission
+        - TextView tvName
+        - LinearLayout llEventHeader
+        - ImageView ivEventPicture
+        - BottomNavigationView bottomNavigationView
+        - FrameLayout flFragmentContainer
+
+        + void onCreate(Bundle savedInstanceState)
+        - void loadFragment(Fragment fragment)
+        - void setUpEventHeader()
+        + String getEventId()
+        + void deleteMediaPost(MediaPost mp)
+    }
+
+class EventsFragment {
+        - Model model
+        - TextView tvNoEvents
+        - RecyclerView rcvEventList
+        - static final String ARG_PARAM1
+        - static final String ARG_PARAM2
+        - String mParam1
+        - String mParam2
+
+        + EventsFragment()
+        + static EventsFragment newInstance(String param1, String param2)
+        + void onCreate(Bundle savedInstanceState)
+        + View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+        + void onViewCreated(View view, Bundle savedInstanceState)
+        + void onResume()
+        + void eventDataChanged(Exception ex)
+        + void userRegistrationCompleted(Exception ex)
+        + void userLoginCompleted(Exception ex)
+        + void userDataLoaded(Exception ex)
+        + void eventDataLoaded(Exception ex)
+        + void raiseMediaUploadComplete(Exception ex, String url)
+        + void mediaPostChanged(Exception ex, Event event)
+        + void hostDataLoaded(Exception ex, User user)
+        + void joinEventResult(Exception ex)
+    }
+
+class CreateEventFragment {
+    - model: Model
+    - calendar: Calendar
+    - eventBitmap: Bitmap
+    - btnCreateEvent: Button
+    - btnCloseDialog: Button
+    - etTitle: EditText
+    - etDescription: EditText
+    - etDate: EditText
+    - etTime: EditText
+    - etLocation: EditText
+    - ivAddEventPic: ImageView
+    - bsProfilePicDialog: BottomSheetDialog
+    - mParam1: String
+    - mParam2: String
+    - cameraPermissionLauncher: ActivityResultLauncher<String>
+    - cameraLauncher: ActivityResultLauncher<Void>
+    - readGalleryImagesPermissionLauncher: ActivityResultLauncher<String>
+    - readGalleryImageLauncher: ActivityResultLauncher<String>
+    + CreateEventFragment()
+    + static newInstance(param1: String, param2: String): CreateEventFragment
+    + onCreate(savedInstanceState: Bundle): void
+    + onViewCreated(view: View, savedInstanceState: Bundle): void
+    + onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View
+    - clearViews(): void
+    - showEventCreatedSuccesfullyDialog(): void
+    - createEventInstance(view: View): Event
+    - isCameraPermissionGranted(): boolean
+    - isReadMediaImagePermissionGranted(): boolean
+    - openCamera(): void
+    - openGallery(): void
+    + eventDataChanged(ex: Exception): void
+    + userRegistrationCompleted(ex: Exception): void
+    + userLoginCompleted(ex: Exception): void
+    + userDataLoaded(ex: Exception): void
+    + eventDataLoaded(e: Exception): void
+    + raiseMediaUploadComplete(e: Exception, url: String): void
+    + mediaPostChanged(ex: Exception, event: Event): void
+    + hostDataLoaded(e: Exception, user: User): void
+    + joinEventCompleted(e: Exception): void
+    + createEventCompleted(e: Exception): void
+  }
+
+class EventDetailsFragment {
+    - model: Model
+    - event: Event
+    - eventId: String
+    - etHost: EditText
+    - etDate: EditText
+    - etLocation: EditText
+    - etDescription: EditText
+    - ivQR: ImageView
+    - mParam1: String
+    - mParam2: String
+    + EventDetailsFragment()
+    + static newInstance(param1: String, param2: String): EventDetailsFragment
+    + onCreate(savedInstanceState: Bundle): void
+    + onViewCreated(view: View, savedInstanceState: Bundle): void
+    + onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View
+    - generateAndDisplayQRCode(eventId: String): void
+    + eventDataChanged(ex: Exception): void
+    + userRegistrationCompleted(ex: Exception): void
+    + userLoginCompleted(ex: Exception): void
+    + userDataLoaded(ex: Exception): void
+    + eventDataLoaded(e: Exception): void
+    + raiseMediaUploadComplete(e: Exception, url: String): void
+    + mediaPostChanged(ex: Exception, event: Event): void
+    + hostDataLoaded(e: Exception, user: User): void
+    + joinEventCompleted(e: Exception): void
+    + createEventCompleted(e: Exception): void
+  }
+
+class EventSharedAlbumFragment {
+    - model: Model
+    - event: Event
+    - mediaPostsAdapter: MediaPostAdapter
+    - tempMediaPost: MediaPost
+    - mediaAmountLeftToUpload: int
+    - mediaLinks: ArrayList<String>
+    - selectedBitmaps: ArrayList<Bitmap>
+    - btnNewPost: Button
+    - bsUploadMedia: BottomSheetDialog
+    - mediaPostsList: RecyclerView
+
+    - cameraPermissionLauncher: ActivityResultLauncher<String>
+    - cameraLauncher: ActivityResultLauncher<Void>
+    - readGalleryImagesPermissionLauncher: ActivityResultLauncher<String>
+    - readGalleryImagesLauncher: ActivityResultLauncher<String[]>
+
+    - mParam1: String
+    - mParam2: String
+
+    + EventSharedAlbumFragment()
+    + static newInstance(param1: String, param2: String): EventSharedAlbumFragment
+    + onCreate(savedInstanceState: Bundle): void
+    + onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View
+    + onViewCreated(view: View, savedInstanceState: Bundle): void
+    + onResume(): void
+    + deleteMediaPost(mediaPost: MediaPost): void
+    - showCreatePostDialog(): void
+    - uploadMediaAndCreatePost(): void
+    - createPost(): void
+    - isCameraPermissionGranted(): boolean
+    - isReadMediaImagePermissionGranted(): boolean
+    - openCamera(): void
+    - openGallery(): void
+    - loadImageFromUri(uri: Uri): Bitmap
+    + eventDataChanged(ex: Exception): void
+    + userRegistrationCompleted(ex: Exception): void
+    + userLoginCompleted(ex: Exception): void
+    + userDataLoaded(ex: Exception): void
+    + eventDataLoaded(e: Exception): void
+    + raiseMediaUploadComplete(e: Exception, url: String): void
+    + mediaPostChanged(ex: Exception, event: Event): void
+    + hostDataLoaded(e: Exception, user: User): void
+    + joinEventCompleted(e: Exception): void
+    + createEventCompleted(e: Exception): void
+  }
+
+interface NetworkChangeCallback {
+    +onNetworkAvailable(): void
+    +onNetworkLost(): void
+}
+
+class NetworkChangeReceiver {
+    - static callback: NetworkChangeCallback
+    +setNetworkChangeCallback(cb: NetworkChangeCallback): void
+    +onReceive(context: Context, intent: Intent): void
+    +isNetworkConnected(context: Context): boolean
+}
+class EventReminderReceiver {
+    +onReceive(context: Context, intent: Intent): void
+}
+
+EventReminderReceiver ..|> BroadcastReceiver
+
+
+NetworkChangeReceiver ..|> BroadcastReceiver
+NetworkChangeReceiver --> NetworkChangeCallback
+
+
+EventSharedAlbumFragment ..|> Fragment
+EventSharedAlbumFragment ..|> IModelUpdate
+EventDetailsFragment ..|> Fragment
+EventDetailsFragment ..|> IModelUpdate
+CreateEventFragment ..|> Fragment
+CreateEventFragment ..|> IModelUpdate
+MainActivity ..|> AppCompatActivity
+MainActivity ..|> IModelUpdate
+ProfileFragment ..|> Fragment
+ProfileFragment ..|> IModelUpdate
+JoinEventFragment ..|> Fragment
+JoinEventFragment ..|> IModelUpdate
+EventDisplayActivity ..|> AppCompatActivity
+EventsFragment ..|> Fragment
+EventsFragment ..|> IModelUpdate
+MainActivity *-- ProfileFragment
+MainActivity *-- JoinEventFragment
+MainActivity *-- EventsFragment
+MainActivity *-- CreateEventFragment
+EventDisplayActivity *-- EventDetailsFragment
+EventDisplayActivity *-- EventSharedAlbumFragment
+
+
+
+
+
+@enduml
